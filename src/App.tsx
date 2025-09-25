@@ -29,6 +29,28 @@ function App() {
       isDone: !todo.isDone,
     });
   }
+
+type CloseButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement>;
+
+function CloseButton(props: CloseButtonProps) {
+  return (
+    <button
+      aria-label="Close"
+      style={{
+        background: "none",
+        border: "none",
+        color: "red",
+        cursor: "pointer",
+        fontWeight: "bold",
+        fontSize: "1rem",
+        ...props.style,
+      }}
+      {...props}
+    >
+      ×
+    </button>
+  );
+}
   
   return (
     <main>
@@ -38,36 +60,22 @@ function App() {
         {todos.map((todo, idx) => (
           <li key={todo.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span>{todo.content}</span>
-            <button
+            <CloseButton 
               onClick={(e) => {
           e.stopPropagation();
           deleteTodo(todo.id);
               }}
-              style={{
-          marginLeft: "8px",
-          background: "none",
-          border: "none",
-          color: "red",
-          cursor: "pointer",
-          fontWeight: "bold",
-          fontSize: "1rem"
-              }}
               aria-label="Delete todo"
             >
-              ×
-            </button>
+            </CloseButton>
           </li>
         ))}
       </ul>
-      <div>
-        🥳 App successfully hosted. Try creating a new todo.
-        <br />
-        <a href="https://docs.amplify.aws/react/start/quickstart/#make-frontend-updates">
-          Review next step of this tutorial.
-        </a>
-      </div>
     </main>
   );
 }
 
 export default App;
+
+
+///  href="https://docs.amplify.aws/react/start/quickstart/#make-frontend-updates" Review next step of this tutorial.
