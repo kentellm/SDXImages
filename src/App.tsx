@@ -16,14 +16,47 @@ function App() {
   function createTodo() {
     client.models.Todo.create({ content: window.prompt("Todo content") });
   }
+  
+  function deleteTodo(id: string) {
+    client.models.Todo.delete({ id })
+  }
 
+    function toggleTodo(idx: number) {
+    const todo = todos[idx];
+    if (!todo.id) return;
+    client.models.Todo.update({
+      id: todo.id,
+      isDone: !todo.isDone,
+    });
+  }
+  
   return (
     <main>
       <h1>My todos</h1>
       <button onClick={createTodo}>+ new</button>
       <ul>
-        {todos.map((todo) => (
-          <li key={todo.id}>{todo.content}</li>
+        {todos.map((todo, idx) => (
+          <li key={todo.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span>{todo.content}</span>
+            <button
+              onClick={(e) => {
+          e.stopPropagation();
+          deleteTodo(todo.id);
+              }}
+              style={{
+          marginLeft: "8px",
+          background: "none",
+          border: "none",
+          color: "red",
+          cursor: "pointer",
+          fontWeight: "bold",
+          fontSize: "1rem"
+              }}
+              aria-label="Delete todo"
+            >
+              ×
+            </button>
+          </li>
         ))}
       </ul>
       <div>
