@@ -8,12 +8,6 @@ const client = generateClient<Schema>();
 function App() {
   const [todos, setTodos] = useState<Array<Schema["Todo"]["type"]>>([]);
 
-  useEffect(() => {
-    client.models.Todo.observeQuery().subscribe({
-      next: (data) => setTodos([...data.items]),
-    });
-  }, []);
-
     useEffect(() => {
     const subscription = client.models.Todo.observeQuery().subscribe({
       next: (data) => setTodos(data.items.map(item => ({ ...item }))),
@@ -45,12 +39,14 @@ function CloseButton(props: CloseButtonProps) {
     <button
       aria-label="Close"
       style={{
-        background: "none",
-        //border: "none",
-       //color: "red",
-        //cursor: "pointer",
+       background: "none",
+        border: "none",
+        color: "#ff4d4d",
+        cursor: "pointer",
+        fontSize: "0.9rem",
         fontWeight: "bold",
-        //fontSize: "1rem",
+        padding: "0 8px",
+        lineHeight: "1",
         ...props.style,
       }}
       {...props}
@@ -59,39 +55,46 @@ function CloseButton(props: CloseButtonProps) {
     </button>
   );
 }
-  
-  return (
-    <main>
-      <h1>My todos</h1>
-        <button onClick={createTodo}>+ new</button>
-        <ul>
-          {todos.map((todo, idx) => (
-              <li key={todo.id ?? idx}>
-               <input
-                type="checkbox"
-                checked={!!todo.isDone}
-                onChange={() => {
-                toggleTodo(idx);
-                  if (!todo.isDone) {
-                  confetti({
-                    particleCount: 100,
-                    spread: 70,
-                    origin: { y: 0.6 },
-                    zIndex: 1000
-                  });
-                  }
-                }}
-              />
+
+ 
+    return (
+    <main style={{
+      maxWidth: "600px",
+      margin: "0 auto",
+      padding: "20px",
+      fontFamily: "Arial, sans-serif",
+    }}>
+      <h1>My Todos</h1>
+      <button
+        onClick={createTodo}
+      >
+        + New
+      </button>
+      <ul>
+        {todos.map((todo, idx) => (
+          <li
+            key={todo.id ?? idx}
+          >
+            <input
+              type="checkbox"
+              checked={!!todo.isDone}
+              onChange={() => toggleTodo(idx)}
+            />
+            <span>
               {todo.content}
-              <CloseButton
-                onClick={(e) => {
-                  e.stopPropagation();
-                  deleteTodo(todo.id);
-                }}
-              />
-            </li>
-          ))}
-        </ul>
+            </span>
+            <CloseButton
+              onClick={(e) => {
+                e.stopPropagation();
+                deleteTodo(todo.id);
+              }}
+            />
+          </li>
+        ))}
+      </ul>
+      <footer>
+        Create a new todo item by clicking the "+ New" button.
+      </footer>
     </main>
   );
 }
