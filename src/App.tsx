@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { Schema } from "../amplify/data/resource";
 import { generateClient } from "aws-amplify/data";
 import confetti from "canvas-confetti";
-import { CfnSubnetRouteTableAssociation } from "aws-cdk-lib/aws-ec2";
+
 
 
 const client = generateClient<Schema>();
