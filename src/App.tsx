@@ -32,7 +32,7 @@ function App() {
     });
   }
 
-type CloseButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement>;
+  type CloseButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement>;
 
 function CloseButton(props: CloseButtonProps) {
   return (
@@ -56,12 +56,11 @@ function CloseButton(props: CloseButtonProps) {
   );
 }
 
- 
+
     return (
     <main style={{
       maxWidth: "600px",
       margin: "0 auto",
-      padding: "20px",
       fontFamily: "Arial, sans-serif",
     }}>
       <h1>My Todos</h1>
@@ -72,7 +71,14 @@ function CloseButton(props: CloseButtonProps) {
       </button>
       <ul>
         {todos.map((todo, idx) => (
-          <li key={todo.id ?? idx}>
+          <li key={todo.id ?? idx}
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "left", // Optional: to vertically align items
+              
+            }}>
+             <div style={{ flexGrow: 1, textAlign: "left", marginRight: "10px" }}>
              <input
                 type="checkbox"
                 checked={!!todo.isDone}
@@ -87,10 +93,12 @@ function CloseButton(props: CloseButtonProps) {
                   });
                   }
                 }}
+                style={{ marginRight: "10px" }}
               />
-            <span>
+            <span style={{ textDecoration: todo.isDone ? "line-through" : "none" }}>
               {todo.content}
             </span>
+            </div>
             <CloseButton
               onClick={(e) => {
                 e.stopPropagation();
