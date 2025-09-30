@@ -72,14 +72,22 @@ function CloseButton(props: CloseButtonProps) {
       </button>
       <ul>
         {todos.map((todo, idx) => (
-          <li
-            key={todo.id ?? idx}
-          >
-            <input
-              type="checkbox"
-              checked={!!todo.isDone}
-              onChange={() => toggleTodo(idx)}
-            />
+          <li key={todo.id ?? idx}>
+             <input
+                type="checkbox"
+                checked={!!todo.isDone}
+                onChange={() => {
+                toggleTodo(idx);
+                  if (!todo.isDone) {
+                  confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    zIndex: 1000
+                  });
+                  }
+                }}
+              />
             <span>
               {todo.content}
             </span>
