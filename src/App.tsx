@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import type { Schema } from "../amplify/data/resource";
 import { generateClient } from "aws-amplify/data";
 import confetti from "canvas-confetti";
+import { CfnSubnetRouteTableAssociation } from "aws-cdk-lib/aws-ec2";
+
 
 const client = generateClient<Schema>();
 
@@ -37,32 +39,17 @@ function App() {
 function CloseButton(props: CloseButtonProps) {
   return (
     <button
+      className="close-button"  
       aria-label="Close"
-      style={{
-       background: "none",
-        border: "none",
-        color: "#ff4d4d",
-        cursor: "pointer",
-        fontSize: "0.9rem",
-        fontWeight: "bold",
-        padding: "0 8px",
-        lineHeight: "1",
-        ...props.style,
-      }}
       {...props}
     >
-      ×
+      X
     </button>
   );
 }
 
-
-    return (
-    <main style={{
-      maxWidth: "600px",
-      margin: "0 auto",
-      fontFamily: "Arial, sans-serif",
-    }}>
+return (
+    <main> 
       <h1>My Todos</h1>
       <button
         onClick={createTodo}
