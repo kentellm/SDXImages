@@ -37,7 +37,7 @@ function App() {
     });
   }
 
-  type CloseButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement>;
+type CloseButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement>;
 
 function CloseButton(props: CloseButtonProps) {
   return (
@@ -85,7 +85,7 @@ return (
                 }}
                 style={{ marginRight: "10px" }}
               />
-            <span style={{ textDecoration: todo.isDone ? "line-through" : "none" }}>
+            <span>
               {todo.content}
             </span>
             </div>
