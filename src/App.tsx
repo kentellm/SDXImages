@@ -9,15 +9,14 @@ const client = generateClient<Schema>();
 
 function App() {
   
-  const { signOut } = useAuthenticator();
+  const { user, signOut } = useAuthenticator();
   
   const [todos, setTodos] = useState<Array<Schema["Todo"]["type"]>>([]);
 
-    useEffect(() => {
-    const subscription = client.models.Todo.observeQuery().subscribe({
-      next: (data) => setTodos(data.items.map(item => ({ ...item }))),
+  useEffect(() => {
+    client.models.Todo.observeQuery().subscribe({
+      next: (data) => setTodos([...data.items]),
     });
-    return () => subscription.unsubscribe();
   }, []);
 
   function createTodo() {
@@ -53,7 +52,7 @@ function CloseButton(props: CloseButtonProps) {
 
 return (
     <main> 
-      <h1>My Todos</h1>
+      <h1>{user?.signInDetails?.loginId}'s todos</h1>
       <button
         onClick={createTodo}
       >
