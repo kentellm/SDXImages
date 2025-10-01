@@ -2,12 +2,15 @@ import { useEffect, useState } from "react";
 import type { Schema } from "../amplify/data/resource";
 import { generateClient } from "aws-amplify/data";
 import confetti from "canvas-confetti";
-
+import { useAuthenticator } from '@aws-amplify/ui-react';
 
 
 const client = generateClient<Schema>();
 
 function App() {
+  
+  const { signOut } = useAuthenticator();
+  
   const [todos, setTodos] = useState<Array<Schema["Todo"]["type"]>>([]);
 
     useEffect(() => {
@@ -98,6 +101,7 @@ return (
       <footer>
         Create a new todo item by clicking the "+ New" button.
       </footer>
+      <button onClick={signOut}>Sign out</button>
     </main>
   );
 }
