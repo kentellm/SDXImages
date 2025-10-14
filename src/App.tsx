@@ -1,14 +1,20 @@
 import { useEffect, useState } from "react";
 import type { Schema } from "../amplify/data/resource";
 import { generateClient } from "aws-amplify/data";
-import confetti from "canvas-confetti";
 import { useAuthenticator } from '@aws-amplify/ui-react';
+import  TodoItem  from "./TodoItem";
+import { FileUploader } from '@aws-amplify/ui-react-storage';
+import '@aws-amplify/ui-react/styles.css';
+import PaginatedImageGallery from "./ImageGallery";
 
 
 const client = generateClient<Schema>();
 
 function App() {
-  
+  // Image Gallery
+
+
+  //Todo App
   const { user, signOut } = useAuthenticator();
   
   const [todos, setTodos] = useState<Array<Schema["Todo"]["type"]>>([]);
@@ -36,20 +42,6 @@ function App() {
     });
   }
 
-type CloseButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement>;
-
-function CloseButton(props: CloseButtonProps) {
-  return (
-    <button
-      className="close-button"  
-      aria-label="Close"
-      {...props}
-    >
-      X
-    </button>
-  );
-}
-
 return (
     <main> 
       <h1>{user?.signInDetails?.loginId}'s todos</h1>
@@ -59,46 +51,31 @@ return (
         + New
       </button>
       <ul>
-        {todos.map((todo, idx) => (
-          <li key={todo.id ?? idx}
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "left", // Optional: to vertically align items
-              
-            }}>
-             <div style={{ flexGrow: 1, textAlign: "left", marginRight: "10px" }}>
-             <input
-                type="checkbox"
-                checked={!!todo.isDone}
-                onChange={() => {
-                toggleTodo(idx);
-                  if (!todo.isDone) {
-                  confetti({
-                    particleCount: 100,
-                    spread: 70,
-                    origin: { y: 0.6 },
-                    zIndex: 1000
-                  });
-                  }
-                }}
-                style={{ marginRight: "10px" }}
-              />
-            <span>
-              {todo.content}
-            </span>
-            </div>
-            <CloseButton
-              onClick={(e) => {
-                e.stopPropagation();
-                deleteTodo(todo.id);
-              }}
-            />
-          </li>
-        ))}
-      </ul>
+            {todos.map((todo, idx) => (
+                // Use the memoized component here
+                <TodoItem
+                    key={todo.id ?? idx}
+                    todo={todo}
+                    idx={idx}
+                    toggleTodo={toggleTodo}
+                    deleteTodo={deleteTodo}
+                />
+            ))}
+        </ul>
       <footer>
         Create a new todo item by clicking the "+ New" button.
+      </footer>
+      <div>
+        <FileUploader
+          acceptedFileTypes={['image/*']}
+          path="image-submissions/"
+          maxFileCount={1}
+          isResumable
+        />
+      </div>
+      <PaginatedImageGallery />
+      <footer>
+        Upload a file above.
       </footer>
       <button onClick={signOut}>Sign out</button>
     </main>
