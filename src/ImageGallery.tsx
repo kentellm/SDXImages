@@ -1,4 +1,4 @@
-import { StorageImage, FileUploader } from '@aws-amplify/ui-react-storage';
+import { StorageImage} from '@aws-amplify/ui-react-storage';
 import { useEffect, useState, useCallback } from "react";
 import { list } from 'aws-amplify/storage';
 
