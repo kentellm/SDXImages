@@ -65,6 +65,7 @@ return (
       <footer>
         Create a new todo item by clicking the "+ New" button.
       </footer>
+      <PaginatedImageGallery />
       <div>
         <FileUploader
           acceptedFileTypes={['image/*']}
@@ -73,7 +74,6 @@ return (
           isResumable
         />
       </div>
-      <PaginatedImageGallery />
       <footer>
         Upload a file above.
       </footer>
