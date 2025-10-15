@@ -117,7 +117,7 @@ function PaginatedImageGallery() {
 
         {!hasMore && imageList.length > 0 && (
           <p style={{ color: '#888' }}>
-            All images loaded. 🎉
+            All images loaded. 
           </p>
         )}
 
