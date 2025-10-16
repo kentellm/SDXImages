@@ -5,8 +5,10 @@
   display: grid;
   gap: 16px;
   grid-template-columns: repeat(4, 1fr); /* 4 columns for large screens */
-  max-width: 1200px; 
   margin: 0 auto; 
+  max-width: 1200px; /* Limits size on big screens */
+  width: 100%;       /* Ensures it fills available space on small screens */
+  overflow-x: hidden; /* Prevents horizontal scrolling caused by this grid */
 }
 
 /* Medium Screens (e.g., 3 columns) */
