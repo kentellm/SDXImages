@@ -1,6 +1,7 @@
 import { StorageImage } from '@aws-amplify/ui-react-storage';
 import { useEffect, useState, useCallback } from "react";
 import { list } from 'aws-amplify/storage';
+import './Gallery.css';
 
 // --- Configuration ---
 const ITEMS_PER_PAGE = 10;
@@ -64,13 +65,7 @@ function PaginatedImageGallery() {
       <h2>Image Gallery (Click to view full size)</h2>
       
       {/* Thumbnail Grid Display */}
-      <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', // Adjust minmax for desired thumbnail width
-        gap: '16px',
-        maxWidth: '1200px', // Optional: Control max width of the grid
-        margin: '0 auto', // Optional: Center the grid
-      }}>
+      <div className="gallery-grid">
         {imageList.map((file) => (
           <div 
             key={file.path} 

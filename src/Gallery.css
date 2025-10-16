@@ -1,0 +1,24 @@
+/* Gallery.css */
+
+/* Default: Large Screens (e.g., 4 columns) */
+.gallery-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(4, 1fr); /* 4 columns for large screens */
+  max-width: 1200px; 
+  margin: 0 auto; 
+}
+
+/* Medium Screens (e.g., 3 columns) */
+@media (max-width: 900px) {
+  .gallery-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Small Screens (Below 600px): The requested 2 columns */
+@media (max-width: 600px) {
+  .gallery-grid {
+    grid-template-columns: repeat(2, 1fr); /* 2 columns for small screens */
+  }
+}
