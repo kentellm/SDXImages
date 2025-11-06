@@ -83,6 +83,3 @@ return (
 }
 
 export default App;
-
-
-///  href="https://docs.amplify.aws/react/start/quickstart/#make-frontend-updates" Review next step of this tutorial.
