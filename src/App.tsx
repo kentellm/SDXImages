@@ -11,7 +11,7 @@ import PaginatedImageGallery from "./ImageGallery";
 const client = generateClient<Schema>();
 
 function App() {
-  // Image Gallery
+  // Image Gallery -- made a separate component for clarity
 
 
   //Todo App

@@ -1,238 +1,53 @@
-// PaginatedImageGallery.tsx
 import { StorageImage } from '@aws-amplify/ui-react-storage';
 import { useEffect, useState, useCallback, useRef } from "react";
 import { list } from 'aws-amplify/storage';
 import './Gallery.css';
 
-// ──────────────────────────────────────────────────────────────
-// Configuration
-// ──────────────────────────────────────────────────────────────
+// --- Configuration ---
 const ITEMS_PER_PAGE = 10;
-const FOLDER_PATH = 'image-submissions/'; // Must end with a '/'
-const MIN_ZOOM = 1;
-const MAX_ZOOM = 5;
-const ZOOM_STEP = 0.5;
+const FOLDER_PATH = 'image-submissions/';
 
-// ──────────────────────────────────────────────────────────────
-// Types
-// ──────────────────────────────────────────────────────────────
-interface FileItem { path: string; }
-
-interface ZoomState {
-  scale: number;
-  translateX: number;
-  translateY: number;
-}
-
-// ──────────────────────────────────────────────────────────────
-// Reusable zoomable image (modal or inline)
-// ──────────────────────────────────────────────────────────────
-function ZoomableImage({
-  path,
-  alt,
-  onClose,
-}: {
+interface FileItem {
   path: string;
-  alt: string;
-  onClose?: () => void;
-}) {
-  const imgRef = useRef<HTMLImageElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [zoom, setZoom] = useState<ZoomState>({
-    scale: 1,
-    translateX: 0,
-    translateY: 0,
-  });
-
-  // ---------- Slider ----------
-  const handleSlider = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newScale = Number(e.target.value);
-    setZoom((z) => ({ ...z, scale: newScale }));
-  };
-
-  // ---------- Wheel (desktop) ----------
-  const handleWheel = (e: React.WheelEvent) => {
-    e.preventDefault();
-    const delta = e.deltaY > 0 ? -ZOOM_STEP : ZOOM_STEP;
-    setZoom((z) => {
-      const newScale = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, z.scale + delta));
-      return { ...z, scale: newScale };
-    });
-  };
-
-  // ---------- Pinch / Double-tap ----------
-  const lastTap = useRef<number>(0);
-  const lastDistance = useRef<number>(0);
-  const startPos = useRef<{ x: number; y: number } | null>(null);
-
-const handleTouchStart = (e: React.TouchEvent) => {
-  if (e.touches.length === 2) {
-    const t1 = e.touches[0];
-    const t2 = e.touches[1];
-    lastDistance.current = Math.hypot(t1.pageX - t2.pageX, t1.pageY - t2.pageY);
-  } else if (e.touches.length === 1) {
-    const now = Date.now();
-    if (now - lastTap.current < 300) {
-      setZoom((z) => ({
-        ...z,
-        scale: z.scale > 1.5 ? MIN_ZOOM : 2,
-        translateX: 0,
-        translateY: 0,
-      }));
-    }
-    lastTap.current = now;
-    startPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-  }
-};
-
-const handleTouchMove = (e: React.TouchEvent) => {
-  if (e.touches.length === 2) {
-    const t1 = e.touches[0];
-    const t2 = e.touches[1];
-    const distance = Math.hypot(t1.pageX - t2.pageX, t1.pageY - t2.pageY);
-    const ratio = distance / lastDistance.current;
-    lastDistance.current = distance;
-
-    setZoom((z) => {
-      const newScale = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, z.scale * ratio));
-      return { ...z, scale: newScale };
-    });
-  } else if (e.touches.length === 1 && zoom.scale > 1 && startPos.current) {
-    const dx = e.touches[0].clientX - startPos.current.x;
-    const dy = e.touches[0].clientY - startPos.current.y;
-    startPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-    setZoom((z) => ({
-      ...z,
-      translateX: z.translateX + dx,
-      translateY: z.translateY + dy,
-    }));
-  }
-};
-
-
-  const resetZoom = () => setZoom({ scale: 1, translateX: 0, translateY: 0 });
-
-  // ---------- Render ----------
-  return (
-    <div
-      ref={containerRef}
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(0,0,0,0.85)',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 1000,
-        overflow: 'hidden',
-      }}
-      onClick={(e) => e.target === e.currentTarget && onClose?.()}
-    >
-      {/* Close button */}
-      <button
-        onClick={onClose}
-        style={{
-          position: 'absolute',
-          top: 16,
-          right: 16,
-          background: 'none',
-          border: 'none',
-          color: '#fff',
-          fontSize: '2rem',
-          cursor: 'pointer',
-        }}
-      >
-        ×
-      </button>
-
-      {/* Image */}
-      <div
-        style={{
-          flex: 1,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          overflow: 'hidden',
-          width: '100%',
-        }}
-        onWheel={handleWheel}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-      >
-        <StorageImage
-          ref={imgRef}
-          path={path}
-          alt={alt}
-          style={{
-            maxWidth: 'none',
-            maxHeight: 'none',
-            transform: `translate(${zoom.translateX}px, ${zoom.translateY}px) scale(${zoom.scale})`,
-            transformOrigin: 'center',
-            transition: 'transform 0.05s',
-            cursor: zoom.scale > 1 ? 'grab' : 'default',
-          }}
-        />
-      </div>
-
-      {/* Controls (desktop slider + reset) */}
-      <div
-        style={{
-          position: 'absolute',
-          bottom: 20,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          background: 'rgba(255,255,255,0.9)',
-          padding: '8px 16px',
-          borderRadius: 8,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 12,
-        }}
-      >
-        <span>Zoom:</span>
-        <input
-          type="range"
-          min={MIN_ZOOM}
-          max={MAX_ZOOM}
-          step={0.1}
-          value={zoom.scale}
-          onChange={handleSlider}
-          style={{ width: 150 }}
-        />
-        <span>{zoom.scale.toFixed(1)}×</span>
-        <button onClick={resetZoom} style={{ marginLeft: 8 }}>
-          Reset
-        </button>
-      </div>
-    </div>
-  );
 }
 
-// ──────────────────────────────────────────────────────────────
-// Main Gallery Component
-// ──────────────────────────────────────────────────────────────
-export default function PaginatedImageGallery() {
+function PaginatedImageGallery() {
   const [imageList, setImageList] = useState<FileItem[]>([]);
   const [nextToken, setNextToken] = useState<string | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [selectedImageKey, setSelectedImageKey] = useState<string | null>(null);
+  
+  // Zoom and pan states
+  const [scale, setScale] = useState(1);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  
+  const imageContainerRef = useRef<HTMLDivElement>(null);
 
   const loadNextPage = useCallback(async () => {
     if (isLoading || !hasMore) return;
     setIsLoading(true);
+
     try {
       const response = await list({
         path: FOLDER_PATH,
-        options: { pageSize: ITEMS_PER_PAGE, nextToken },
+        options: {
+          pageSize: ITEMS_PER_PAGE,
+          nextToken,
+        },
       });
-      const newItems = response.items.filter((i) => i.path !== FOLDER_PATH);
-      setImageList((prev) => [...prev, ...newItems]);
+      
+      const newItems = response.items.filter(item => item.path !== FOLDER_PATH);
+      setImageList(prevList => [...prevList, ...newItems]);
       setNextToken(response.nextToken);
-      if (!response.nextToken) setHasMore(false);
-    } catch (e) {
-      console.error(e);
+
+      if (!response.nextToken) {
+        setHasMore(false);
+      }
+    } catch (error) {
+      console.error("Error loading image page:", error);
     } finally {
       setIsLoading(false);
     }
@@ -240,19 +55,128 @@ export default function PaginatedImageGallery() {
 
   useEffect(() => {
     loadNextPage();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Reset zoom and pan when opening a new image
+  const openImage = (path: string) => {
+    setSelectedImageKey(path);
+    setScale(1);
+    setPosition({ x: 0, y: 0 });
+  };
+
+  // Close modal and reset states
+  const closeModal = () => {
+    setSelectedImageKey(null);
+    setScale(1);
+    setPosition({ x: 0, y: 0 });
+  };
+
+  // Zoom controls
+  const zoomIn = () => {
+    setScale(prev => Math.min(prev + 0.5, 5));
+  };
+
+  const zoomOut = () => {
+    setScale(prev => Math.max(prev - 0.5, 0.5));
+  };
+
+  const resetZoom = () => {
+    setScale(1);
+    setPosition({ x: 0, y: 0 });
+  };
+
+  // Mouse wheel zoom
+  const handleWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -0.1 : 0.1;
+    setScale(prev => Math.max(0.5, Math.min(5, prev + delta)));
+  };
+
+  // Pan functionality
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (scale > 1) {
+      setIsDragging(true);
+      setDragStart({
+        x: e.clientX - position.x,
+        y: e.clientY - position.y
+      });
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (isDragging && scale > 1) {
+      setPosition({
+        x: e.clientX - dragStart.x,
+        y: e.clientY - dragStart.y
+      });
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  // Touch support for mobile
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (scale > 1 && e.touches.length === 1) {
+      setIsDragging(true);
+      setDragStart({
+        x: e.touches[0].clientX - position.x,
+        y: e.touches[0].clientY - position.y
+      });
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (isDragging && scale > 1 && e.touches.length === 1) {
+      setPosition({
+        x: e.touches[0].clientX - dragStart.x,
+        y: e.touches[0].clientY - dragStart.y
+      });
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+  };
+
+  // Keyboard controls
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!selectedImageKey) return;
+      
+      switch(e.key) {
+        case 'Escape':
+          closeModal();
+          break;
+        case '+':
+        case '=':
+          zoomIn();
+          break;
+        case '-':
+          zoomOut();
+          break;
+        case '0':
+          resetZoom();
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedImageKey]);
 
   return (
     <div>
       <h2>Image Gallery (Click to view full size)</h2>
-
-      {/* Thumbnails */}
+      
+      {/* Thumbnail Grid Display */}
       <div className="gallery-grid">
         {imageList.map((file) => (
-          <div
-            key={file.path}
-            style={{
-              width: '100%',
+          <div 
+            key={file.path} 
+            style={{ 
+              width: '100%', 
               paddingBottom: '100%',
               position: 'relative',
               cursor: 'pointer',
@@ -260,18 +184,19 @@ export default function PaginatedImageGallery() {
               borderRadius: '4px',
               overflow: 'hidden',
             }}
-            onClick={() => setSelectedImageKey(file.path)}
+            onClick={() => openImage(file.path)}
           >
-            <StorageImage
-              alt={file.path.split('/').pop() || 'Uploaded image'}
-              path={file.path}
-              style={{
-                position: 'absolute',
-                inset: 0,
-                width: '100%',
-                height: '100%',
+            <StorageImage 
+              alt={file.path.split('/').pop() || 'Uploaded image'} 
+              path={file.path} 
+              style={{ 
+                position: 'absolute', 
+                top: 0, 
+                left: 0, 
+                width: '100%', 
+                height: '100%', 
                 objectFit: 'cover',
-                transition: 'transform .2s ease-in-out',
+                transition: 'transform 0.2s ease-in-out',
               }}
               onMouseOver={(e) => (e.currentTarget.style.transform = 'scale(1.05)')}
               onMouseOut={(e) => (e.currentTarget.style.transform = 'scale(1)')}
@@ -280,30 +205,211 @@ export default function PaginatedImageGallery() {
         ))}
       </div>
 
-      {/* Pagination */}
-      <div style={{ marginTop: 30, textAlign: 'center' }}>
+      {/* Pagination Controls */}
+      <div style={{ marginTop: '30px', textAlign: 'center' }}>
         {isLoading && <p>Loading more images...</p>}
+
         {!isLoading && hasMore && (
-          <button onClick={loadNextPage} style={{ padding: '10px 20px' }}>
+          <button onClick={loadNextPage} style={{ padding: '10px 20px', cursor: 'pointer' }}>
             Load More ({ITEMS_PER_PAGE} images)
           </button>
         )}
+
         {!hasMore && imageList.length > 0 && (
           <p style={{ color: '#888' }}>All images loaded.</p>
         )}
+
         {imageList.length === 0 && !isLoading && !hasMore && (
           <p>No images found in the folder.</p>
         )}
       </div>
 
-      {/* Full-size modal with zoom */}
+      {/* Enhanced Full-Size Image Modal with Zoom & Pan */}
       {selectedImageKey && (
-        <ZoomableImage
-          path={selectedImageKey}
-          alt={selectedImageKey.split('/').pop() || 'Full-size image'}
-          onClose={() => setSelectedImageKey(null)}
-        />
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            backgroundColor: 'rgba(0, 0, 0, 0.95)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 1000,
+          }}
+          onClick={closeModal}
+        >
+          {/* Zoom Controls Bar */}
+          <div 
+            style={{
+              position: 'absolute',
+              top: '20px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              display: 'flex',
+              gap: '10px',
+              backgroundColor: 'rgba(255, 255, 255, 0.9)',
+              padding: '10px 20px',
+              borderRadius: '30px',
+              zIndex: 1002,
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button 
+              onClick={zoomOut}
+              disabled={scale <= 0.5}
+              style={{ 
+                padding: '8px 16px',
+                fontSize: '1.2rem',
+                cursor: scale <= 0.5 ? 'not-allowed' : 'pointer',
+                border: 'none',
+                background: scale <= 0.5 ? '#ddd' : '#007bff',
+                color: 'white',
+                borderRadius: '5px',
+                fontWeight: 'bold',
+              }}
+            >
+              −
+            </button>
+            
+            <span style={{ 
+              padding: '8px 16px', 
+              fontSize: '1rem',
+              fontWeight: '600',
+              color: '#333',
+              minWidth: '80px',
+              textAlign: 'center',
+            }}>
+              {Math.round(scale * 100)}%
+            </span>
+            
+            <button 
+              onClick={zoomIn}
+              disabled={scale >= 5}
+              style={{ 
+                padding: '8px 16px',
+                fontSize: '1.2rem',
+                cursor: scale >= 5 ? 'not-allowed' : 'pointer',
+                border: 'none',
+                background: scale >= 5 ? '#ddd' : '#007bff',
+                color: 'white',
+                borderRadius: '5px',
+                fontWeight: 'bold',
+              }}
+            >
+              +
+            </button>
+            
+            <button 
+              onClick={resetZoom}
+              style={{ 
+                padding: '8px 16px',
+                fontSize: '0.9rem',
+                cursor: 'pointer',
+                border: 'none',
+                background: '#6c757d',
+                color: 'white',
+                borderRadius: '5px',
+              }}
+            >
+              Reset
+            </button>
+          </div>
+
+          {/* Close Button */}
+          <button 
+            onClick={closeModal}
+            style={{ 
+              position: 'absolute', 
+              top: '20px', 
+              right: '20px', 
+              background: 'rgba(255, 255, 255, 0.9)', 
+              border: 'none', 
+              fontSize: '2rem', 
+              cursor: 'pointer', 
+              color: '#333',
+              width: '50px',
+              height: '50px',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 1002,
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+            }}
+          >
+            ×
+          </button>
+
+          {/* Instructions */}
+          <div 
+            style={{
+              position: 'absolute',
+              bottom: '20px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              backgroundColor: 'rgba(0, 0, 0, 0.7)',
+              color: 'white',
+              padding: '10px 20px',
+              borderRadius: '20px',
+              fontSize: '0.85rem',
+              zIndex: 1002,
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {scale > 1 ? 'Drag to pan • ' : ''}Scroll to zoom • +/- keys • ESC to close
+          </div>
+
+          {/* Image Container with Pan & Zoom */}
+          <div 
+            ref={imageContainerRef}
+            style={{ 
+              width: '90vw',
+              height: '80vh',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              overflow: 'hidden',
+              cursor: scale > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default',
+            }}
+            onClick={(e) => e.stopPropagation()}
+            onWheel={handleWheel}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            <div
+              style={{
+                transform: `scale(${scale}) translate(${position.x / scale}px, ${position.y / scale}px)`,
+                transition: isDragging ? 'none' : 'transform 0.1s ease-out',
+              }}
+            >
+              <StorageImage 
+                alt={selectedImageKey.split('/').pop() || 'Full-size image'} 
+                path={selectedImageKey} 
+                style={{ 
+                  maxWidth: '90vw',
+                  maxHeight: '80vh',
+                  display: 'block', 
+                  objectFit: 'contain',
+                  userSelect: 'none',
+                  pointerEvents: 'none',
+                }}
+              />
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
 }
+
+export default PaginatedImageGallery;
