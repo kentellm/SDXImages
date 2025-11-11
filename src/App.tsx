@@ -1,83 +1,32 @@
-import { useEffect, useState } from "react";
-import type { Schema } from "../amplify/data/resource";
-import { generateClient } from "aws-amplify/data";
 import { useAuthenticator } from '@aws-amplify/ui-react';
-import  TodoItem  from "./TodoItem";
 import { FileUploader } from '@aws-amplify/ui-react-storage';
 import '@aws-amplify/ui-react/styles.css';
-import PaginatedImageGallery from "./ImageGallery";
-
-
-const client = generateClient<Schema>();
+import Dashboard from "./components/Dashboard";
 
 function App() {
-  // Image Gallery -- made a separate component for clarity
+  const { signOut } = useAuthenticator();
 
-
-  //Todo App
-  const { user, signOut } = useAuthenticator();
-  
-  const [todos, setTodos] = useState<Array<Schema["Todo"]["type"]>>([]);
-
-  useEffect(() => {
-    client.models.Todo.observeQuery().subscribe({
-      next: (data) => setTodos([...data.items]),
-    });
-  }, []);
-
-  function createTodo() {
-    client.models.Todo.create({ content: window.prompt("Todo content") });
-  }
-  
-  function deleteTodo(id: string) {
-    client.models.Todo.delete({ id })
-  }
-
-  function toggleTodo(idx: number) {
-    const todo = todos[idx];
-    if (!todo.id) return;
-    client.models.Todo.update({
-      id: todo.id,
-      isDone: !todo.isDone,
-    });
-  }
-
-return (
-    <main> 
-      <h1>{user?.signInDetails?.loginId}'s todos</h1>
-      <button
-        onClick={createTodo}
-      >
-        + New
-      </button>
-      <ul>
-            {todos.map((todo, idx) => (
-                // Use the memoized component here
-                <TodoItem
-                    key={todo.id ?? idx}
-                    todo={todo}
-                    idx={idx}
-                    toggleTodo={toggleTodo}
-                    deleteTodo={deleteTodo}
-                />
-            ))}
-        </ul>
-      <footer>
-        Create a new todo item by clicking the "+ New" button.
-      </footer>
-      <PaginatedImageGallery />
-      <div>
+  return (
+    <main>
+      <Dashboard />
+      
+      {/* File Uploader Section - You can move this into Dashboard or a separate component if needed */}
+      <div style={{ padding: '2rem', maxWidth: '1400px', margin: '0 auto' }}>
+        <h2>Upload Images</h2>
         <FileUploader
           acceptedFileTypes={['image/*']}
           path="image-submissions/"
           maxFileCount={1}
           isResumable
         />
+        <footer style={{ marginTop: '1rem' }}>
+          Upload a file above.
+        </footer>
       </div>
-      <footer>
-        Upload a file above.
-      </footer>
-      <button onClick={signOut}>Sign out</button>
+
+      <div style={{ textAlign: 'center', padding: '2rem' }}>
+        <button onClick={signOut}>Sign out</button>
+      </div>
     </main>
   );
 }

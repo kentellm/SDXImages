@@ -1,5 +1,5 @@
 import { memo } from "react";
-import type { Schema } from "../amplify/data/resource";
+import type { Schema } from "../../amplify/data/resource";
 import confetti from "canvas-confetti";
 
 type CloseButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement>;
